@@ -1,16 +1,26 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
     <title>Bots replay</title>
     <script src="main.js"></script>
 </head>
 
 <body onload="start()">
-    <canvas id="glcanvas" width="640" height="480">
+    <canvas id="glcanvas" width="640" height="640">
         Your browser does not support HTML5 canvas.
     </canvas>
+    <script id="shader-fs" type="x-shader/x-fragment">
+        void main(void) {
+          gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        }
+    </script>
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+        attribute vec2 aVertexPosition;
+        void main(void) {
+          gl_Position = vec4(aVertexPosition, 0, 1.0);
+        }
+      </script>
 </body>
 
 </html>
