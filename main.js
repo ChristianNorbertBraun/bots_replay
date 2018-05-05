@@ -106,17 +106,17 @@ function createSquare() {
     var vertices = new Float32Array([
         -0.5, 0.5,
         -0.5, -0.5,
+        0.5, 0.5,
         0.5, -0.5,
-        0.5, 0.5
     ]);
 
-    var indices = [3, 2, 1, 3, 1, 0];
+    // var indices = [3, 2, 1, 3, 1, 0];
 
     var textureCoordinates = new Float32Array([
         0.0, 0.0,
         0.0, 1.0,
-        1.0, 1.0,
         1.0, 0.0,
+        1.0, 1.0,
     ]);
     var glTextureBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
@@ -128,16 +128,22 @@ function createSquare() {
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
-    var glIndexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, glIndexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+    var perspectiveMatrix = mat4.create()
+    mat4.perspective(perspectiveMatrix, 45, 1, 0.1, 100);
 
-    // gl.drawArrays(gl.TRIANGLES, 0, 6);
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+    var translationMatrix = mat4.create();
+    var translationVector = vec3.create();
+    vec3.set(translationVector, 0, 0, - 6.0);
+    console.log(translationVector)
+    mat4.translate(translationMatrix, translationMatrix, translationVector);
+
+    console.log(perspectiveMatrix);
+    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
 function start() {
