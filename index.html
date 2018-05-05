@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Bots replay</title>
     <script src="main.js"></script>
@@ -10,15 +11,24 @@
         Your browser does not support HTML5 canvas.
     </canvas>
     <script id="shader-fs" type="x-shader/x-fragment">
+        varying highp vec2 vTextureCoord;
+
+        uniform sampler2D uSampler;
+
         void main(void) {
-          gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+          gl_FragColor = texture2D(uSampler, vTextureCoord);
+          //gl_FragColor = vec4(1.0, 0, 0, 1.0);
         }
     </script>
 
     <script id="shader-vs" type="x-shader/x-vertex">
         attribute vec2 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        varying vec2 vTextureCoord;
         void main(void) {
           gl_Position = vec4(aVertexPosition, 0, 1.0);
+          vTextureCoord = aTextureCoord;
         }
       </script>
 </body>
