@@ -131,20 +131,39 @@ function createSquare(x, y) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
-    var perspectiveMatrix = mat4.create();
-    mat4.identity(perspectiveMatrix);
-    mat4.perspective(perspectiveMatrix, 45 * (Math.PI/ 180), 1, 0.1, 100);
+    var perspectiveMatrix = createPerspectiveMatrix();
+    var translationMatrix = createTranslationMatrix(1/8, 1/8, x, y);
 
-    var translationVector = vec3.create()
-    vec3.set(translationVector, x, y, -12);
-
-    var translationMatrix = mat4.create();
-    mat4.fromTranslation(translationMatrix, translationVector);
-
-    console.log(translationMatrix);
-    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
-    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+    gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+    gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+
+function createPerspectiveMatrix() {
+    var perspectiveMat = new Float32Array([
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1 
+    ]);
+
+    return perspectiveMat;
+}
+
+function createTranslationMatrix(scaleFactorX, scaleFactorY, translationX, translationY) {
+    var transMat = new Float32Array ([
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    ]);
+
+    transMat[0] = scaleFactorX;
+    transMat[4] = scaleFactorY;
+
+    transMat[6] = translationX * scaleFactorX; 
+    transMat[7] = translationY * scaleFactorY;
+    console.log(transMat);
+
+    return transMat;
 }
 
 function start() {
@@ -164,27 +183,13 @@ function draw() {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    createSquare(0, 0);
-    createSquare(2, 0);
-    createSquare(4, 0);
-    createSquare(6, 0);
-    createSquare(-2, 0);
-    createSquare(-4, 0);
-    createSquare(-6, 0);
+    createSquare(-7, 0);
+    createSquare(-5, 0);
+    createSquare(-3, 0);
+    createSquare(-1, 0);
+    createSquare(1, 0);
+    createSquare(3, 0);
+    createSquare(5, 0);
+    createSquare(7, 0);
 
-    createSquare(0, 2);
-    createSquare(2, 2);
-    createSquare(4, 2);
-    createSquare(6, 2);
-    createSquare(-2, 2);
-    createSquare(-4, 2);
-    createSquare(-6, 2);
-
-    createSquare(0, 4);
-    createSquare(2, 4);
-    createSquare(4, 4);
-    createSquare(6, 4);
-    createSquare(-2, 4);
-    createSquare(-4, 4);
-    createSquare(-6, 4);
 }
