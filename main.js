@@ -19,7 +19,7 @@ function handleTextureLoaded(image, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
@@ -102,12 +102,12 @@ function initWebGL(canvas) {
     return gl;
 }
 
-function createSquare() {
+function createSquare(x, y) {
     var vertices = new Float32Array([
-        -0.5, 0.5,
-        -0.5, -0.5,
-        0.5, 0.5,
-        0.5, -0.5,
+        -1.0, 1.0,
+        -1.0, -1.0,
+        1.0, 1.0,
+        1.0, -1.0,
     ]);
 
     // var indices = [3, 2, 1, 3, 1, 0];
@@ -131,16 +131,17 @@ function createSquare() {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
-    var perspectiveMatrix = mat4.create()
-    mat4.perspective(perspectiveMatrix, 45, 1, 0.1, 100);
+    var perspectiveMatrix = mat4.create();
+    mat4.identity(perspectiveMatrix);
+    mat4.perspective(perspectiveMatrix, 45 * (Math.PI/ 180), 1, 0.1, 100);
+
+    var translationVector = vec3.create()
+    vec3.set(translationVector, x, y, -12);
 
     var translationMatrix = mat4.create();
-    var translationVector = vec3.create();
-    vec3.set(translationVector, 0, 0, - 6.0);
-    console.log(translationVector)
-    mat4.translate(translationMatrix, translationMatrix, translationVector);
+    mat4.fromTranslation(translationMatrix, translationVector);
 
-    console.log(perspectiveMatrix);
+    console.log(translationMatrix);
     gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
     gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
@@ -158,9 +159,32 @@ function start() {
 }
 
 function draw() {
+    gl.viewport(0, 0, 640, 640);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    createSquare();
+    createSquare(0, 0);
+    createSquare(2, 0);
+    createSquare(4, 0);
+    createSquare(6, 0);
+    createSquare(-2, 0);
+    createSquare(-4, 0);
+    createSquare(-6, 0);
+
+    createSquare(0, 2);
+    createSquare(2, 2);
+    createSquare(4, 2);
+    createSquare(6, 2);
+    createSquare(-2, 2);
+    createSquare(-4, 2);
+    createSquare(-6, 2);
+
+    createSquare(0, 4);
+    createSquare(2, 4);
+    createSquare(4, 4);
+    createSquare(6, 4);
+    createSquare(-2, 4);
+    createSquare(-4, 4);
+    createSquare(-6, 4);
 }
