@@ -132,7 +132,7 @@ function createSquare(x, y) {
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
     var perspectiveMatrix = createPerspectiveMatrix();
-    var translationMatrix = createTranslationMatrix(1/8, 1/8, x, y);
+    var translationMatrix = createTranslationMatrix(scaleFactor, scaleFactor, x, y);
 
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
@@ -143,14 +143,14 @@ function createPerspectiveMatrix() {
     var perspectiveMat = new Float32Array([
         1, 0, 0,
         0, 1, 0,
-        0, 0, 1 
+        0, 0, 1
     ]);
 
     return perspectiveMat;
 }
 
 function createTranslationMatrix(scaleFactorX, scaleFactorY, translationX, translationY) {
-    var transMat = new Float32Array ([
+    var transMat = new Float32Array([
         1, 0, 0,
         0, 1, 0,
         0, 0, 1
@@ -159,15 +159,25 @@ function createTranslationMatrix(scaleFactorX, scaleFactorY, translationX, trans
     transMat[0] = scaleFactorX;
     transMat[4] = scaleFactorY;
 
-    transMat[6] = translationX * scaleFactorX; 
+    transMat[6] = translationX * scaleFactorX;
     transMat[7] = translationY * scaleFactorY;
-    console.log(transMat);
 
     return transMat;
 }
 
+var map = [
+    1, 1, 1,
+    1, 1, 1,
+    1, 1, 1,
+];
+
+var scaleFactor;
+var mapDimension;
+
 function start() {
     var canvas = document.getElementById("glcanvas");
+    scaleFactor = 1 / Math.sqrt(map.length)
+    mapDimension = Math.sqrt(map.length)
 
     gl = initWebGL(canvas);
 
@@ -177,19 +187,35 @@ function start() {
     }
 }
 
+
+
 function draw() {
     gl.viewport(0, 0, 640, 640);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    createSquare(-7, 0);
-    createSquare(-5, 0);
-    createSquare(-3, 0);
-    createSquare(-1, 0);
-    createSquare(1, 0);
-    createSquare(3, 0);
-    createSquare(5, 0);
-    createSquare(7, 0);
 
+
+    var startX = -(mapDimension - 1);
+    var startY = -(mapDimension - 1);
+    for (var y = 0; y < mapDimension; ++y) {
+        for (var x = 0; x < mapDimension; ++x) {
+            if (startX >= mapDimension) {
+                var startX = -(mapDimension - 1);
+            }
+            createSquare(startX, startY);
+            startX += 2;
+        }
+        startY += 2
+    }
+
+    // createSquare(-7, 0);
+    // createSquare(-5, 0);
+    // createSquare(-2, 0);
+    // createSquare(0, 0);
+    // createSquare(2, 0);
+    // createSquare(3, 0);
+    // createSquare(5, 0);
+    // createSquare(7, 0);
 }
