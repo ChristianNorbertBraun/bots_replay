@@ -12,14 +12,16 @@ function initTextures() {
     cubeTexture = gl.createTexture();
     cubeImage = new Image();
     cubeImage.onload = function () { handleTextureLoaded(cubeImage, cubeTexture); }
-    cubeImage.src = "map.png";
+    cubeImage.src = "atlas.png";
 }
 
 function handleTextureLoaded(image, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
@@ -84,6 +86,8 @@ function initShaders() {
 
     textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
+
+    gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
 }
 
 function initWebGL(canvas) {
@@ -115,12 +119,18 @@ function createSquare(x, y) {
     var textureCoordinates = new Float32Array([
         0.0, 0.0,
         0.0, 1.0,
+        0.5, 0.0,
+        0.5, 1.0,
+
+        0.5, 0.0,
+        0.5, 1.0,
         1.0, 0.0,
         1.0, 1.0,
     ]);
     var glTextureBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
+    // This will change from frame to frame
     gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
     var glBuffer = gl.createBuffer();
@@ -130,8 +140,8 @@ function createSquare(x, y) {
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-    gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
     var perspectiveMatrix = createPerspectiveMatrix();
+    // This will change from frame to frame
     var translationMatrix = createTranslationMatrix(scaleFactor, scaleFactor, x, y);
 
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
@@ -142,7 +152,7 @@ function createSquare(x, y) {
 function createPerspectiveMatrix() {
     var perspectiveMat = new Float32Array([
         1, 0, 0,
-        0, 1, 0,
+        0, width / height, 0,
         0, 0, 1
     ]);
 
@@ -181,21 +191,35 @@ function start() {
 
     gl = initWebGL(canvas);
 
+
     if (gl) {
         initShaders();
         initTextures();
+
+        window.onresize = resize;
+        resize();
     }
 }
 
+var width;
+var height;
+var aspect;
+
+function resize() {
+    width = gl.canvas.clientWidth
+    height = gl.canvas.clientHeight
+    gl.canvas.width = width
+    gl.canvas.height = height
+    gl.viewport(0, 0, width, height)
+    aspect = height / width
+}
 
 
 function draw() {
-    gl.viewport(0, 0, 640, 640);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
 
     var startX = -(mapDimension - 1);
     var startY = -(mapDimension - 1);
@@ -209,13 +233,4 @@ function draw() {
         }
         startY += 2
     }
-
-    // createSquare(-7, 0);
-    // createSquare(-5, 0);
-    // createSquare(-2, 0);
-    // createSquare(0, 0);
-    // createSquare(2, 0);
-    // createSquare(3, 0);
-    // createSquare(5, 0);
-    // createSquare(7, 0);
 }
