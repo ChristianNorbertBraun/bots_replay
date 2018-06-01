@@ -10,28 +10,6 @@ var texture;
 var width;
 var height;
 
-function initiateTextureLoading() {
-    var texture = gl.createTexture();
-    cubeImage = new Image();
-    cubeImage.onload = function () { handleTextureLoaded(cubeImage, cubeTexture); }
-    cubeImage.src = "atlas.png";
-
-    return image
-}
-
-function handleTextureLoaded(image, texture) {
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.bindTexture(gl.TEXTURE_2D, null);
-
-    draw();
-}
-
 function getShader(gl, id) {
     var shaderScript = document.getElementById(id);
 
@@ -152,7 +130,7 @@ function createSquare(x, y) {
 
     gl.activeTexture(gl.TEXTURE0);
     // Here i have to use other texture
-    gl.bindTexture(gl.TEXTURE_2D, textur);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
     var perspectiveMatrix = createPerspectiveMatrix();
     // This will change from frame to frame
     var translationMatrix = createTranslationMatrix(scaleFactor, scaleFactor, x, y);
@@ -197,29 +175,6 @@ var map = [
 var scaleFactor;
 var mapDimension;
 
-function load() {
-
-}
-
-function start() {
-    var canvas = document.getElementById("glcanvas");
-    scaleFactor = 1 / Math.sqrt(map.length)
-    scaleFactor = 1 / 32
-    mapDimension = Math.sqrt(map.length)
-    mapDimension = 32
-
-    gl = initWebGL(canvas);
-
-    if (gl) {
-        shaderProgram = initShaders();
-        configureShaders(shaderProgram);
-        initTextures();
-
-        window.onresize = resize;
-        resize();
-    }
-}
-
 function resize() {
     width = gl.canvas.clientWidth
     height = gl.canvas.clientHeight
@@ -228,10 +183,18 @@ function resize() {
     gl.viewport(0, 0, width, height)
 }
 
+var last = Date.now();
 function draw() {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LEQUAL);
+    // requestAnimationFrame(draw);
+
+    // var now = Date.now();
+    // if (now - last < 100) {
+    //     console.log("Not enough time gone")
+    //     return
+    // }
+    // last = now;
+   
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var startX = -(mapDimension - 1);
@@ -260,7 +223,10 @@ function initTexture(texture, image) {
 }
 
 function init(image) {
+    var canvas = document.getElementById("glcanvas");
     gl = initWebGL(canvas);
+    scaleFactor = 1 / 32
+    mapDimension = 32
 
     if (gl) {
         shaderProgram = initShaders();
@@ -275,6 +241,8 @@ function init(image) {
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
+
+        requestAnimationFrame(draw);
     }
 }
 
@@ -282,4 +250,6 @@ function load() {
     var image = new Image();
     image.onload = function () { init(image) };
     image.src = "atlas.png";
-}
+} 
+
+window.onload = load;
