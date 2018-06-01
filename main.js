@@ -16,9 +16,21 @@ var gameRecord;
 
 var spriteIndices = {
     '.': 0,
-    'A': 1,
-    'o': 2,
-    '#': 3
+    '~': 1,
+    'X': 2,
+    '#': 3,
+    'o': 4,
+    '@': 5,
+
+    'A': 6,
+    'B': 10,
+}
+
+var playerDirectionIndices = {
+    '^': 0,
+    '<': 1,
+    '>': 2,
+    'v': 3
 }
 
 function configureShaders(shaderProgram) {
@@ -37,25 +49,80 @@ var vertices = new Float32Array([
 ]);
 
 var textureCoordinates = new Float32Array([
+    // First row sprites
     0.0, 0.0,
-    0.0, 1.0,
+    0.0, 1 / 4,
     1 / 4, 0.0,
-    1 / 4, 1.0,
+    1 / 4, 1 / 4,
 
     1 / 4, 0.0,
-    1 / 4, 1.0,
+    1 / 4, 1 / 4,
     2 / 4, 0.0,
-    2 / 4, 1.0,
+    2 / 4, 1 / 4,
 
     2 / 4, 0.0,
-    2 / 4, 1.0,
+    2 / 4, 1 / 4,
     3 / 4, 0.0,
-    3 / 4, 1.0,
+    3 / 4, 1 / 4,
 
     3 / 4, 0.0,
-    3 / 4, 1.0,
+    3 / 4, 1 / 4,
     4 / 4, 0.0,
-    4 / 4, 1.0,
+    4 / 4, 1 / 4,
+
+    // Second row sprites
+
+    0.0, 1 / 4,
+    0.0, 2 / 4,
+    1 / 4, 1 / 4,
+    1 / 4, 2 / 4,
+
+    1 / 4, 1 / 4,
+    1 / 4, 2 / 4,
+    2 / 4, 1 / 4,
+    2 / 4, 2 / 4,
+
+    // Third row sprites
+    0.0, 2 / 4,
+    0.0, 3 / 4,
+    1 / 4, 2 / 4,
+    1 / 4, 3 / 4,
+
+    1 / 4, 2 / 4,
+    1 / 4, 3 / 4,
+    2 / 4, 2 / 4,
+    2 / 4, 3 / 4,
+
+    2 / 4, 2 / 4,
+    2 / 4, 3 / 4,
+    3 / 4, 2 / 4,
+    3 / 4, 3 / 4,
+
+    3 / 4, 2 / 4,
+    3 / 4, 3 / 4,
+    4 / 4, 2 / 4,
+    4 / 4, 3 / 4,
+
+    // Fourth row sprites
+    0.0, 3 / 4,
+    0.0, 4 / 4,
+    1 / 4, 2 / 4,
+    1 / 4, 4 / 4,
+
+    1 / 4, 3 / 4,
+    1 / 4, 4 / 4,
+    2 / 4, 3 / 4,
+    2 / 4, 4 / 4,
+
+    2 / 4, 3 / 4,
+    2 / 4, 4 / 4,
+    3 / 4, 3 / 4,
+    3 / 4, 4 / 4,
+
+    3 / 4, 3 / 4,
+    3 / 4, 4 / 4,
+    4 / 4, 3 / 4,
+    4 / 4, 4 / 4,
 ]);
 
 var glBuffer;
@@ -113,13 +180,31 @@ function draw() {
                 var startX = -(mapDimension - 1);
             }
             var currentSymbol = map.charAt(y * mapDimension + x)
-            createTile(startX, startY, spriteIndices[currentSymbol]);
+            var spriteIndex = spriteIndices[currentSymbol];
+
+            if (spriteIndex > 5) {
+                var player = findPlayer(currentSymbol);
+                spriteIndex += playerDirectionIndices[player.bearing.charAt(0)];
+            }
+            createTile(startX, startY, spriteIndex);
             startX += 2;
         }
         startY += 2
     }
 
     requestAnimationFrame(draw);
+}
+
+function findPlayer(playerSymbol) {
+    var players =  gameRecord.turns[currentTurn].players
+    for (var i = 0; i < players.length; ++i) {
+        if (players[i].name == playerSymbol) {
+            return players[i];
+        } else {
+            console.error("Can't find player with playerSymbol: " + playerSymbol)
+            return undefined;
+        }
+    }
 }
 
 function init(image) {
