@@ -106,7 +106,7 @@ var textureCoordinates = new Float32Array([
     // Fourth row sprites
     0.0, 3 / 4,
     0.0, 4 / 4,
-    1 / 4, 2 / 4,
+    1 / 4, 3 / 4,
     1 / 4, 4 / 4,
 
     1 / 4, 3 / 4,
@@ -196,15 +196,16 @@ function draw() {
 }
 
 function findPlayer(playerSymbol) {
-    var players =  gameRecord.turns[currentTurn].players
+    var players = gameRecord.turns[currentTurn].players
     for (var i = 0; i < players.length; ++i) {
-        if (players[i].name == playerSymbol) {
+        if (players[i].name === playerSymbol) {
+            console.info("Found player for playerSymbol: " + playerSymbol);
             return players[i];
-        } else {
-            console.error("Can't find player with playerSymbol: " + playerSymbol)
-            return undefined;
         }
     }
+    console.log(players);
+    console.error("Can't find player with playerSymbol: " + playerSymbol);
+    return undefined;
 }
 
 function init(image) {
@@ -260,7 +261,7 @@ function updateControls() {
 
     // Start at 1 and keep tableHeader
     for (var i = 1; i < numberOfRows; ++i) {
-        playerTable.deleteRow(i);
+        playerTable.deleteRow(1);
     }
 
     for (var i = 0; i < players.length; ++i) {
