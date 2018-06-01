@@ -86,6 +86,11 @@ function initTexture(gl, texture, image) {
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
+function activateTexture0(gl, texture) {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+}
+
 function createTranslationMatrix(scaleFactorX, scaleFactorY, translationX, translationY) {
     var transMat = new Float32Array([
         1, 0, 0,
