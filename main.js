@@ -157,15 +157,30 @@ function input() {
     if (gamePaused) {
         return;
     }
-    if (gameRecord.turns[currentTurn++] == undefined) {
+    if (gameRecord.turns[currentTurn] == undefined) {
         return;
     }
     updateControls();
     setTimeout(input, replaySpeedInMs);
+    ++currentTurn;
 }
 
 function updateControls() {
     currentTurnInput.value = currentTurn;
+
+    var turn = gameRecord.turns[currentTurn];
+    var players = turn.players;
+
+    var numberOfRows = playerTable.rows.length;
+
+    // Start at 1 and keep tableHeader
+    for (var i = 1; i < numberOfRows; ++i) {
+        playerTable.deleteRow(i);
+    }
+
+    for (var i = 0; i < players.length; ++i) {
+        addTableRow(players[i])
+    }
 }
 
 function startRecord() {
@@ -215,6 +230,17 @@ function load() {
         var value = event.target.value
         if (value > 0) {
             replaySpeedInMs = value;
+        }
+    }
+
+    currentTurnInput.onchange = function (event) {
+        var value = event.target.value
+        if (value >= 0) {
+            currentTurn = value;
+            updateControls();
+        } else {
+            alert("Cant change turn to lower then 0")
+            updateControls();
         }
     }
 }
@@ -281,4 +307,21 @@ function disableAllRecordButtons(disable) {
     playButton.disabled = disable;
     backwardButton.disabled = disable;
     forwardButton.disabled = disable;
+}
+
+function addTableRow(player) {
+    var tr = document.createElement("TR");
+    var id = document.createElement("TD");
+    var life = document.createElement("TD");
+    var score = document.createElement("TD");
+    var moves = document.createElement("TD");
+    id.appendChild(document.createTextNode(player.name));
+    tr.appendChild(id);
+    life.appendChild(document.createTextNode(player.life));
+    tr.appendChild(life);
+    score.appendChild(document.createTextNode(player.score));
+    tr.appendChild(score);
+    moves.appendChild(document.createTextNode(player.moves));
+    tr.appendChild(moves);
+    playerTable.appendChild(tr);
 }

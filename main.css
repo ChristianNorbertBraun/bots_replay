@@ -44,6 +44,12 @@ button {
     width: 100%;
 }
 
+#player-table td 
+{
+    text-align:center; 
+    vertical-align:middle;
+}
+
 :disabled {
     color: gray;
     border-color: gray;
