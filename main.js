@@ -6,9 +6,20 @@ var textureCoordAttribute;
 var shaderProgram;
 
 var texture;
+var textureLoaded = false;
 
 var width;
 var height;
+
+var currentTurn = 1;
+var gameRecord;
+
+var spriteIndices = {
+    '.': 0,
+    'A': 1,
+    'o': 2,
+    '#': 3
+}
 
 function configureShaders(shaderProgram) {
     gl.useProgram(shaderProgram);
@@ -72,12 +83,6 @@ function createTile(x, y, index) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
-var map = [
-    1, 1, 1,
-    1, 1, 1,
-    1, 1, 1,
-];
-
 var scaleFactor;
 var mapDimension;
 
@@ -87,10 +92,17 @@ function resize() {
     gl.canvas.width = width;
     gl.canvas.height = height;
     gl.viewport(0, 0, width, height);
-    console.log(resize);
 }
 
 function draw() {
+    var turn = gameRecord.turns[currentTurn];
+    if (turn == undefined) {
+        replayInProgress = false;
+        alert("Replay ended");
+        return;
+    }
+
+    var map = turn.map;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var startX = -(mapDimension - 1);
@@ -100,7 +112,8 @@ function draw() {
             if (startX >= mapDimension) {
                 var startX = -(mapDimension - 1);
             }
-            createTile(startX, startY, x % 4);
+            var currentSymbol = map.charAt(y * mapDimension + x)
+            createTile(startX, startY, spriteIndices[currentSymbol]);
             startX += 2;
         }
         startY += 2
@@ -110,10 +123,12 @@ function draw() {
 }
 
 function init(image) {
+    textureLoaded = true;
     var canvas = document.getElementById("glcanvas");
+    gl = null;
     gl = initWebGL(canvas);
-    scaleFactor = 1 / 16;
-    mapDimension = 16;
+    mapDimension = gameRecord["map_width"];
+    scaleFactor = 1 / mapDimension;
 
     if (gl) {
         shaderProgram = initShaders();
@@ -133,14 +148,137 @@ function init(image) {
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
 
-        requestAnimationFrame(draw);
+        draw();
+        input();
     }
 }
 
-function load() {
+function input() {
+    if (gamePaused) {
+        return;
+    }
+    if (gameRecord.turns[currentTurn++] == undefined) {
+        return;
+    }
+    updateControls();
+    setTimeout(input, replaySpeedInMs);
+}
+
+function updateControls() {
+    currentTurnInput.value = currentTurn;
+}
+
+function startRecord() {
     var image = new Image();
     image.onload = function () { init(image) };
     image.src = "resources/atlas.png";
 }
 
+function returnToRecord() {
+    input()
+}
+
+var recordUpload;
+
+var replayButton;
+var pauseButton;
+var playButton;
+var backwardButton;
+var forwardButton;
+
+var playerTable;
+
+var currentTurnInput;
+var replaySpeedInput;
+
+var gamePaused = false;
+
+var replaySpeedInMs = 200;
+
+var replayInProgress = false;
+
+function load() {
+    recordUpload = document.getElementById("record-upload");
+    recordUpload.onchange = onRecordUpload;
+
+    replayButton = document.getElementById("replay-button");
+    pauseButton = document.getElementById("pause-button");
+    playButton = document.getElementById("play-button");
+    backwardButton = document.getElementById("backward-button");
+    forwardButton = document.getElementById("forward-button");
+    playerTable = document.getElementById("player-table");
+    currentTurnInput = document.getElementById("current-turn-input");
+    replaySpeedInput = document.getElementById("replay-speed-input");
+
+    disableAllRecordButtons(true);
+    replaySpeedInput.onchange = function (event) {
+        var value = event.target.value
+        if (value > 0) {
+            replaySpeedInMs = value;
+        }
+    }
+}
 window.onload = load;
+
+function onRecordUpload(event) {
+    // Check for the various File API support.
+    if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+        alert('The File APIs are not fully supported in this browser.');
+        return
+    }
+    disableAllRecordButtons(true);
+
+    var file = event.srcElement.files[0]
+    var fileReader = new FileReader();
+
+    fileReader.onload = function (file) {
+        disableAllRecordButtons(false);
+
+        currentTurn = 0;
+        gameRecord = JSON.parse(file.target.result);
+    }
+
+    fileReader.readAsText(file);
+}
+
+function replay() {
+    currentTurn = 0;
+    gamePaused = false
+    startOrReturnToReplay();
+}
+
+function play() {
+    gamePaused = false
+    startOrReturnToReplay();
+}
+
+function startOrReturnToReplay() {
+    if (replayInProgress) {
+        returnToRecord();
+    } else {
+        replayInProgress = true;
+        startRecord();
+    }
+}
+
+function pause() {
+    gamePaused = true;
+}
+
+function forward() {
+    ++currentTurn;
+    updateControls();
+}
+
+function backward() {
+    --currentTurn;
+    updateControls();
+}
+
+function disableAllRecordButtons(disable) {
+    replayButton.disabled = disable;
+    pauseButton.disabled = disable;
+    playButton.disabled = disable;
+    backwardButton.disabled = disable;
+    forwardButton.disabled = disable;
+}

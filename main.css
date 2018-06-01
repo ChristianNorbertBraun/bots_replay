@@ -1,6 +1,9 @@
 html, body {
     overflow: hidden;
     margin: 0; padding: 0;
+    height: 100%;
+    color: #1ec503;
+    font-family: "Lucida Console", Monaco, monospace;
 }
 
 canvas {
@@ -8,4 +11,41 @@ canvas {
     height: 100%;
     padding-bottom: 10vh; 
     position: fixed;
+    background: black;
 }
+
+#controls {
+    width: 20%;
+    height: 100%;
+    float: right;
+    background: black;
+}
+
+button:disabled {
+    display: hidden;
+}
+
+button {
+    margin-top: 0.2em;
+    width: 100%;
+    height: 3em;
+    border-color: #1ec503;
+    color: #1ec503;
+    border-width: 3px; 
+    background: transparent
+}
+
+#backward-button, #play-button, #forward-button {
+    width: 33%;
+    float: left;
+}
+
+#player-table {
+    width: 100%;
+}
+
+:disabled {
+    color: gray;
+    border-color: gray;
+}
+

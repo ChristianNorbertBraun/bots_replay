@@ -14,6 +14,32 @@
     <canvas id="glcanvas">
         Your browser does not support HTML5 canvas.
     </canvas>
+
+    <div id="controls">
+        <h1>Bots Replay</h1>
+        <input type="file" name="uploadgamerecord" id="record-upload" />
+        <br>
+        <label for="current-turn-input">Current Turn:</label>
+        <input id="current-turn-input" type="number" placeholder="Current Turn">
+        <br>
+        <label for="replay-speed-input"> Replay Speed:</label>
+        <input id="replay-speed-input" type="number" value="200"></input><span style="margin-left:10px;">ms</span>
+        <br>
+        <button id="replay-button" onclick="replay()">Replay</button>
+        <button id="pause-button" onclick="pause()">Pause</button>
+        <button id="backward-button" onclick="backward()">Back</button>
+        <button id="play-button" onclick="play()">Play</button>
+        <button id="forward-button" onclick="forward()">Next</button>
+
+        <table id="player-table">
+            <th>ID</th>
+            <th>L</th>
+            <th>S</th>
+            <th>M</th>
+        </table>
+    </div>
+
+
     <script id="shader-fs" type="x-shader/x-fragment">
         varying highp vec2 vTextureCoord;
 
