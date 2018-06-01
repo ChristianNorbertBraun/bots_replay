@@ -3,16 +3,20 @@ var gl;
 var vertexPositionAttribute;
 var textureCoordAttribute;
 
-var cubeTexture;
-var cubeImage;
 var shaderProgram;
 
+var texture;
 
-function initTextures() {
-    cubeTexture = gl.createTexture();
+var width;
+var height;
+
+function initiateTextureLoading() {
+    var texture = gl.createTexture();
     cubeImage = new Image();
     cubeImage.onload = function () { handleTextureLoaded(cubeImage, cubeTexture); }
     cubeImage.src = "atlas.png";
+
+    return image
 }
 
 function handleTextureLoaded(image, texture) {
@@ -70,7 +74,7 @@ function initShaders() {
     var fragmentShader = getShader(gl, "shader-fs");
     var vertexShader = getShader(gl, "shader-vs");
 
-    shaderProgram = gl.createProgram();
+    var shaderProgram = gl.createProgram();
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
@@ -79,15 +83,23 @@ function initShaders() {
         alert("Error while initialising shader program");
     }
 
+    return shaderProgram
+}
+
+// Stays here
+function configureShaders(shaderProgram) {
     gl.useProgram(shaderProgram);
 
-    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(vertexPositionAttribute);
-
-    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(textureCoordAttribute);
-
+    vertexPositionAttribute = getAndEnableGlVertexAttribArray(gl, shaderProgram, "aVertexPosition");
+    textureCoordAttribute = getAndEnableGlVertexAttribArray(gl, shaderProgram, "aTextureCoord");
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+}
+
+function getAndEnableGlVertexAttribArray(glContext, program, name) {
+    var attribute = glContext.getAttribLocation(program, name);
+    gl.enableVertexAttribArray(attribute);
+
+    return attribute
 }
 
 function initWebGL(canvas) {
@@ -119,8 +131,8 @@ function createSquare(x, y) {
     var textureCoordinates = new Float32Array([
         0.0, 0.0,
         0.0, 1.0,
-        0.5, 0.0,
-        0.5, 1.0,
+        1 / 4, 0.0,
+        1 / 4, 1.0,
 
         0.5, 0.0,
         0.5, 1.0,
@@ -139,7 +151,8 @@ function createSquare(x, y) {
     gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+    // Here i have to use other texture
+    gl.bindTexture(gl.TEXTURE_2D, textur);
     var perspectiveMatrix = createPerspectiveMatrix();
     // This will change from frame to frame
     var translationMatrix = createTranslationMatrix(scaleFactor, scaleFactor, x, y);
@@ -184,16 +197,22 @@ var map = [
 var scaleFactor;
 var mapDimension;
 
+function load() {
+
+}
+
 function start() {
     var canvas = document.getElementById("glcanvas");
     scaleFactor = 1 / Math.sqrt(map.length)
+    scaleFactor = 1 / 32
     mapDimension = Math.sqrt(map.length)
+    mapDimension = 32
 
     gl = initWebGL(canvas);
 
-
     if (gl) {
-        initShaders();
+        shaderProgram = initShaders();
+        configureShaders(shaderProgram);
         initTextures();
 
         window.onresize = resize;
@@ -201,19 +220,13 @@ function start() {
     }
 }
 
-var width;
-var height;
-var aspect;
-
 function resize() {
     width = gl.canvas.clientWidth
     height = gl.canvas.clientHeight
     gl.canvas.width = width
     gl.canvas.height = height
     gl.viewport(0, 0, width, height)
-    aspect = height / width
 }
-
 
 function draw() {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -233,4 +246,40 @@ function draw() {
         }
         startY += 2
     }
+}
+
+function initTexture(texture, image) {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+function init(image) {
+    gl = initWebGL(canvas);
+
+    if (gl) {
+        shaderProgram = initShaders();
+        configureShaders(shaderProgram);
+        texture = gl.createTexture();
+        initTexture(texture, image)
+
+        window.onresize = resize;
+        resize();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+    }
+}
+
+function load() {
+    var image = new Image();
+    image.onload = function () { init(image) };
+    image.src = "atlas.png";
 }
