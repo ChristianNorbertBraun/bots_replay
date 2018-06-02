@@ -22,15 +22,15 @@ var spriteIndices = {
     'o': 4,
     '@': 5,
 
-    'A': 6,
-    'B': 10,
+    'A': 7,
+    'B': 11,
 }
 
 var playerDirectionIndices = {
-    '^': 0,
+    'v': 0,
     '<': 1,
     '>': 2,
-    'v': 3
+    '^': 3,
 }
 
 function configureShaders(shaderProgram) {
@@ -81,6 +81,11 @@ var textureCoordinates = new Float32Array([
     1 / 4, 2 / 4,
     2 / 4, 1 / 4,
     2 / 4, 2 / 4,
+
+    2 / 4, 1 / 4,
+    2 / 4, 2 / 4,
+    3 / 4, 1 / 4,
+    3 / 4, 2 / 4,
 
     // Third row sprites
     0.0, 2 / 4,
@@ -148,6 +153,27 @@ function createTile(x, y, index) {
 
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    // gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
+    // gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 6 * 32);
+
+    // gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    // gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    // var perspectiveMatrix = createPerspectiveMatrix(width, height);
+    // var player = gameRecord.turns[currentTurn].players[0];
+
+    // var offset = mapDimension - 1;
+    // var x = player.x + (-offset);
+    // var y = player.y - offset;
+    // // console.log(player.x + (-offset) + " " + player.y - offset);
+    // var translationMatrix = createTranslationMatrix(scaleFactor * 5, scaleFactor * 5, x / 5 , y / 5);
+    // gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+
+    // gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
 var scaleFactor;
@@ -173,7 +199,7 @@ function draw() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var startX = -(mapDimension - 1);
-    var startY = -(mapDimension - 1);
+    var startY = (mapDimension - 1);
     for (var y = 0; y < mapDimension; ++y) {
         for (var x = 0; x < mapDimension; ++x) {
             if (startX >= mapDimension) {
@@ -182,14 +208,14 @@ function draw() {
             var currentSymbol = map.charAt(y * mapDimension + x)
             var spriteIndex = spriteIndices[currentSymbol];
 
-            if (spriteIndex > 5) {
+            if (spriteIndex > 6) {
                 var player = findPlayer(currentSymbol);
                 spriteIndex += playerDirectionIndices[player.bearing.charAt(0)];
             }
             createTile(startX, startY, spriteIndex);
             startX += 2;
         }
-        startY += 2
+        startY -= 2
     }
 
     requestAnimationFrame(draw);
@@ -199,7 +225,6 @@ function findPlayer(playerSymbol) {
     var players = gameRecord.turns[currentTurn].players
     for (var i = 0; i < players.length; ++i) {
         if (players[i].name === playerSymbol) {
-            console.info("Found player for playerSymbol: " + playerSymbol);
             return players[i];
         }
     }
@@ -230,9 +255,11 @@ function init(image) {
         resize();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
+        // gl.disable(gl.DEPTH_TEST);
+        // gl.depthFunc(gl.LEQUAL);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
         draw();
         input();
