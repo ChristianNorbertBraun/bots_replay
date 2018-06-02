@@ -153,27 +153,40 @@ function createTile(x, y, index) {
 
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
 
-    // gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
-    // gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 6 * 32);
+// TODO: This is just a workaround make this pretty
+function createPlayerView() {
+    var turn = gameRecord.turns[currentTurn];
+    
+    if (turn == undefined) {
+        return;
+    }
 
-    // gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-    // gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    var players = turn.players;
 
-    // var perspectiveMatrix = createPerspectiveMatrix(width, height);
-    // var player = gameRecord.turns[currentTurn].players[0];
+    for (var i = 0; i < players.length; ++i) {
+        var player = players[i];
 
-    // var offset = mapDimension - 1;
-    // var x = player.x + (-offset);
-    // var y = player.y - offset;
-    // // console.log(player.x + (-offset) + " " + player.y - offset);
-    // var translationMatrix = createTranslationMatrix(scaleFactor * 5, scaleFactor * 5, x / 5 , y / 5);
-    // gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
-
-    // gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
-    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 6 * 32);
+    
+        gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    
+        var perspectiveMatrix = createPerspectiveMatrix(width, height);
+    
+        var offset = mapDimension;
+        var x = (player.x - offset) * 2;
+        var y = (offset - player.y) * 2;
+        var translationMatrix = createTranslationMatrix(scaleFactor * 5, scaleFactor * 5 , (x + mapDimension + 1) / 5  , (y - mapDimension - 1) / 5);
+        gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+    
+        gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
 }
 
 var scaleFactor;
@@ -218,6 +231,9 @@ function draw() {
         startY -= 2
     }
 
+    if (showPlayerView) {
+        createPlayerView();
+    }
     requestAnimationFrame(draw);
 }
 
@@ -319,11 +335,12 @@ var playerTable;
 var currentTurnInput;
 var replaySpeedInput;
 
+var showPlayerViewInput;
+
 var gamePaused = false;
-
 var replaySpeedInMs = 200;
-
 var replayInProgress = false;
+var showPlayerView = false;
 
 function load() {
     recordUpload = document.getElementById("record-upload");
@@ -337,6 +354,7 @@ function load() {
     playerTable = document.getElementById("player-table");
     currentTurnInput = document.getElementById("current-turn-input");
     replaySpeedInput = document.getElementById("replay-speed-input");
+    showPlayerViewInput = document.getElementById("player-view-input");
 
     disableAllRecordButtons(true);
     replaySpeedInput.onchange = function (event) {
@@ -355,6 +373,10 @@ function load() {
             alert("Cant change turn to lower then 0")
             updateControls();
         }
+    }
+
+    showPlayerViewInput.onchange = function (event) {
+        showPlayerView = event.target.checked;
     }
 }
 window.onload = load;
