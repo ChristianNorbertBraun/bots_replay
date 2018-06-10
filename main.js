@@ -247,7 +247,8 @@ function draw() {
     var turn = gameRecord.turns[currentTurn];
     if (turn == undefined) {
         replayInProgress = false;
-        alert("Replay ended");
+        displayResults();
+        alert("Replay ended, click ok to see results");
         return;
     }
 
@@ -374,6 +375,7 @@ var backwardButton;
 var forwardButton;
 
 var playerTable;
+var resultsTable;
 
 var currentTurnInput;
 var replaySpeedInput;
@@ -391,6 +393,7 @@ var selectedPlayerName;
 var showSelectedPlayerViewHistory = false;
 
 var singlePlayerControlsDiv;
+var resultsDiv;
 
 function load() {
     recordUpload = document.getElementById("record-upload");
@@ -402,11 +405,13 @@ function load() {
     backwardButton = document.getElementById("backward-button");
     forwardButton = document.getElementById("forward-button");
     playerTable = document.getElementById("player-table");
+    resultsTable = document.getElementById("results-table");
     currentTurnInput = document.getElementById("current-turn-input");
     replaySpeedInput = document.getElementById("replay-speed-input");
     showPlayerViewInput = document.getElementById("player-view-input");
     showPlayerViewHistoryInput = document.getElementById("continous-player-view-input");
     singlePlayerControlsDiv = document.getElementById("single-player-controls");
+    resultsDiv = document.getElementById("results");
 
     disableAllRecordButtons(true);
     replaySpeedInput.onchange = function (event) {
@@ -459,7 +464,7 @@ function onRecordUpload(event) {
         var players = turn.players;
 
         for (var i = 0; i < players.length; ++i) {
-            addTableRow(players[i])
+            addTableRow(playerTable, players[i])
         }
     }
 
@@ -508,7 +513,16 @@ function disableAllRecordButtons(disable) {
     forwardButton.disabled = disable;
 }
 
-function addTableRow(player) {
+function displayResults() {
+    var results = gameRecord.results
+    resultsDiv.classList.remove("hidden")
+
+    for (var i = 0; i < results.length; ++i) {
+        addTableRow(resultsTable, results[i])
+    }
+}
+
+function addTableRow(table, player) {
 
     var tr = document.createElement("TR");
     tr.id = player.name
@@ -519,14 +533,20 @@ function addTableRow(player) {
     id.appendChild(document.createTextNode(player.name));
     tr.appendChild(id);
 
-    life.appendChild(document.createTextNode(player.life));
-    tr.appendChild(life);
-
     score.appendChild(document.createTextNode(player.score));
     tr.appendChild(score);
 
     moves.appendChild(document.createTextNode(player.moves));
     tr.appendChild(moves);
+
+    var lastCellContent;
+    if (player.life == undefined) {
+        lastCellContent = player.killer
+    } else {
+        player.life
+    }
+    life.appendChild(document.createTextNode(lastCellContent));
+    tr.appendChild(life);
 
     tr.onclick = function (e) {
         if (selectedPlayerName === player.name) {
@@ -541,7 +561,7 @@ function addTableRow(player) {
         }
     };
 
-    playerTable.appendChild(tr);
+    table.appendChild(tr);
 }
 
 function updateTableRow(player) {
@@ -550,7 +570,7 @@ function updateTableRow(player) {
     if (selectedPlayerName != player.name) {
         playerTR.classList.remove("selected");
     }
-    playerTR.cells[1].innerHTML = player.life;
-    playerTR.cells[2].innerHTML = player.score;
-    playerTR.cells[3].innerHTML = player.moves;
+    playerTR.cells[1].innerHTML = player.score;
+    playerTR.cells[2].innerHTML = player.moves;
+    playerTR.cells[3].innerHTML = player.life;
 }

@@ -44,11 +44,11 @@ button {
     float: left;
 }
 
-#player-table {
+table {
     width: 100%;
 }
 
-#player-table td 
+table td 
 {
     text-align:center; 
     vertical-align:middle;
