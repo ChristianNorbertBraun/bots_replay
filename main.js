@@ -517,6 +517,12 @@ function displayResults() {
     var results = gameRecord.results
     resultsDiv.classList.remove("hidden")
 
+    var numberOfRows = resultsTable.rows.length;
+    // Start at 1 and keep tableHeader
+    for (var i = 1; i < numberOfRows; ++i) {
+        resultsTable.deleteRow(1);
+    }
+
     for (var i = 0; i < results.length; ++i) {
         addTableRow(resultsTable, results[i])
     }
