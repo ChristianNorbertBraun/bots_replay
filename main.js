@@ -14,6 +14,8 @@ var height;
 var currentTurn = 1;
 var gameRecord;
 
+var playerMoves = [];
+
 var spriteIndices = {
     '.': 0,
     '~': 1,
@@ -22,8 +24,8 @@ var spriteIndices = {
     'o': 4,
     '@': 5,
 
-    'A': 7,
-    'B': 11,
+    'A': 8,
+    'B': 12,
 }
 
 var playerDirectionIndices = {
@@ -86,6 +88,11 @@ var textureCoordinates = new Float32Array([
     2 / 4, 2 / 4,
     3 / 4, 1 / 4,
     3 / 4, 2 / 4,
+
+    3 / 4, 1 / 4,
+    3 / 4, 2 / 4,
+    4 / 4, 1 / 4,
+    4 / 4, 2 / 4,
 
     // Third row sprites
     0.0, 2 / 4,
@@ -155,10 +162,46 @@ function createTile(x, y, index) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
+function drawPlayerMoves() {
+
+    for (var i = startTurn; i < currentTurn; ++i) {
+        var player = findPlayer(selectedPlayerName, i);
+        var currentPlayer = findPlayer(selectedPlayerName, currentTurn)
+        if (player.x === currentPlayer.x && player.y === currentPlayer.y) {
+            continue;
+        }
+        var turn = gameRecord.turns[i];
+
+        if (turn == undefined) {
+            return;
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
+        var textureIndex = showSelectedPlayerViewHistory ? 6 : 7
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, textureIndex * 32);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+
+        var perspectiveMatrix = createPerspectiveMatrix(width, height);
+
+        var offset = mapDimension;
+        var x = (player.x - offset) * 2;
+        var y = (offset - player.y) * 2;
+        var multiplier = showSelectedPlayerViewHistory ? 5 : 1;
+        var translationMatrix = createTranslationMatrix(scaleFactor * multiplier, scaleFactor * multiplier, (x + mapDimension + 1) / multiplier, (y - mapDimension - 1) / multiplier);
+        gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+
+        gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+}
 // TODO: This is just a workaround make this pretty
 function createPlayerView() {
     var turn = gameRecord.turns[currentTurn];
-    
+
     if (turn == undefined) {
         return;
     }
@@ -171,19 +214,19 @@ function createPlayerView() {
         gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
         gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 6 * 32);
-    
+
         gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-    
+
         var perspectiveMatrix = createPerspectiveMatrix(width, height);
-    
+
         var offset = mapDimension;
         var x = (player.x - offset) * 2;
         var y = (offset - player.y) * 2;
-        var translationMatrix = createTranslationMatrix(scaleFactor * 5, scaleFactor * 5 , (x + mapDimension + 1) / 5  , (y - mapDimension - 1) / 5);
+        var translationMatrix = createTranslationMatrix(scaleFactor * 5, scaleFactor * 5, (x + mapDimension + 1) / 5, (y - mapDimension - 1) / 5);
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
-    
+
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
@@ -221,8 +264,8 @@ function draw() {
             var currentSymbol = map.charAt(y * mapDimension + x)
             var spriteIndex = spriteIndices[currentSymbol];
 
-            if (spriteIndex > 6) {
-                var player = findPlayer(currentSymbol);
+            if (spriteIndex > 7) {
+                var player = findPlayer(currentSymbol, currentTurn);
                 spriteIndex += playerDirectionIndices[player.bearing.charAt(0)];
             }
             createTile(startX, startY, spriteIndex);
@@ -234,11 +277,14 @@ function draw() {
     if (showPlayerView) {
         createPlayerView();
     }
+    if (selectedPlayerName != undefined) {
+        drawPlayerMoves();
+    }
     requestAnimationFrame(draw);
 }
 
-function findPlayer(playerSymbol) {
-    var players = gameRecord.turns[currentTurn].players
+function findPlayer(playerSymbol, turn) {
+    var players = gameRecord.turns[turn].players
     for (var i = 0; i < players.length; ++i) {
         if (players[i].name === playerSymbol) {
             return players[i];
@@ -302,14 +348,11 @@ function updateControls() {
 
     var numberOfRows = playerTable.rows.length;
 
-    // Start at 1 and keep tableHeader
-    for (var i = 1; i < numberOfRows; ++i) {
-        playerTable.deleteRow(1);
-    }
 
     for (var i = 0; i < players.length; ++i) {
-        addTableRow(players[i])
+        updateTableRow(players[i])
     }
+
 }
 
 function startRecord() {
@@ -336,11 +379,18 @@ var currentTurnInput;
 var replaySpeedInput;
 
 var showPlayerViewInput;
+var showPlayerViewHistoryInput;
 
 var gamePaused = false;
 var replaySpeedInMs = 200;
 var replayInProgress = false;
 var showPlayerView = false;
+
+var startTurn = 0;
+var selectedPlayerName;
+var showSelectedPlayerViewHistory = false;
+
+var singlePlayerControlsDiv;
 
 function load() {
     recordUpload = document.getElementById("record-upload");
@@ -355,6 +405,8 @@ function load() {
     currentTurnInput = document.getElementById("current-turn-input");
     replaySpeedInput = document.getElementById("replay-speed-input");
     showPlayerViewInput = document.getElementById("player-view-input");
+    showPlayerViewHistoryInput = document.getElementById("continous-player-view-input");
+    singlePlayerControlsDiv = document.getElementById("single-player-controls");
 
     disableAllRecordButtons(true);
     replaySpeedInput.onchange = function (event) {
@@ -378,6 +430,10 @@ function load() {
     showPlayerViewInput.onchange = function (event) {
         showPlayerView = event.target.checked;
     }
+
+    showPlayerViewHistoryInput.onchange = function (event) {
+        showSelectedPlayerViewHistory = event.target.checked;
+    }
 }
 window.onload = load;
 
@@ -397,6 +453,14 @@ function onRecordUpload(event) {
 
         currentTurn = 0;
         gameRecord = JSON.parse(file.target.result);
+
+        // Initiate Table for game
+        var turn = gameRecord.turns[currentTurn];
+        var players = turn.players;
+
+        for (var i = 0; i < players.length; ++i) {
+            addTableRow(players[i])
+        }
     }
 
     fileReader.readAsText(file);
@@ -445,18 +509,48 @@ function disableAllRecordButtons(disable) {
 }
 
 function addTableRow(player) {
+
     var tr = document.createElement("TR");
+    tr.id = player.name
     var id = document.createElement("TD");
     var life = document.createElement("TD");
     var score = document.createElement("TD");
     var moves = document.createElement("TD");
     id.appendChild(document.createTextNode(player.name));
     tr.appendChild(id);
+
     life.appendChild(document.createTextNode(player.life));
     tr.appendChild(life);
+
     score.appendChild(document.createTextNode(player.score));
     tr.appendChild(score);
+
     moves.appendChild(document.createTextNode(player.moves));
     tr.appendChild(moves);
+
+    tr.onclick = function (e) {
+        if (selectedPlayerName === player.name) {
+            selectedPlayerName = undefined
+            tr.classList.remove("selected");
+            singlePlayerControlsDiv.classList.add("hidden");
+        } else {
+            selectedPlayerName = player.name;
+            startTurn = currentTurn;
+            tr.classList.add("selected");
+            singlePlayerControlsDiv.classList.remove("hidden");
+        }
+    };
+
     playerTable.appendChild(tr);
+}
+
+function updateTableRow(player) {
+    var playerTR = document.getElementById(player.name);
+
+    if (selectedPlayerName != player.name) {
+        playerTR.classList.remove("selected");
+    }
+    playerTR.cells[1].innerHTML = player.life;
+    playerTR.cells[2].innerHTML = player.score;
+    playerTR.cells[3].innerHTML = player.moves;
 }

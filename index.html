@@ -23,10 +23,11 @@
         <input id="current-turn-input" type="number" placeholder="Current Turn">
         <br>
         <label for="replay-speed-input"> Replay Speed:</label>
-        <input id="replay-speed-input" type="number" value="200"></input><span style="margin-left:10px;">ms</span>
+        <input id="replay-speed-input" type="number" value="200"></input>
+        <span style="margin-left:10px;">ms</span>
         <br>
         <label for="player-view-input"> Show Player View:</label>
-        <input id="player-view-input" type="checkbox" ></input>
+        <input id="player-view-input" type="checkbox"></input>
         <br>
         <button id="replay-button" onclick="replay()">Replay</button>
         <button id="pause-button" onclick="pause()">Pause</button>
@@ -40,6 +41,10 @@
             <th>S</th>
             <th>M</th>
         </table>
+        <div id = "single-player-controls" class="hidden">
+            <label for="continues-player-view-input"> Show Player View History:</label>
+            <input id="continous-player-view-input" type="checkbox"></input>
+        </div>
     </div>
 
 
