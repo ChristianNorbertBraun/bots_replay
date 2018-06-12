@@ -66,7 +66,8 @@ var spriteIndices = {
     'w': 94,
     'x': 95,
     'y': 96,
-    'z': 97
+    'z': 97,
+    '*': 98
 }
 
 var playerDirectionIndices = {
@@ -244,8 +245,6 @@ function drawPlayerMoves() {
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
-        var perspectiveMatrix = createPerspectiveMatrix(width, height);
-
         var offset = mapDimension;
         var x = (player.x - offset) * 2;
         var y = (offset - player.y) * 2;
@@ -277,8 +276,6 @@ function createPlayerView() {
         gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
         gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-
-        var perspectiveMatrix = createPerspectiveMatrix(width, height);
 
         var offset = mapDimension;
         var x = (player.x - offset) * 2;

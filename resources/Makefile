@@ -9,7 +9,7 @@ createAtlas:
 	convert +append "[m-p].png" tempAtlas6.png && \
 	convert +append "[q-t].png" tempAtlas7.png && \
 	convert +append "[u-x].png" tempAtlas8.png && \
-	convert +append "[y-z].png" tempAtlas9.png && \
+	convert +append "[y-z].png" 9snake.png tempAtlas9.png && \
 	convert -append temp*.png tempLetterAtlas.png && \
 	convert -append atlas.png tempLetterAtlas.png atlas.png && \
 	convert atlas.png -background none -gravity north -extent 256x2048 atlas.png && \
