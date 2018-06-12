@@ -279,7 +279,7 @@ function drawPlayerMoves() {
         var offset = mapDimension;
         var x = (player.x - offset) * 2;
         var y = (offset - player.y) * 2;
-        var multiplier = showSelectedPlayerViewHistory ? 5 : 1;
+        var multiplier = showSelectedPlayerViewHistory ? viewDimension : 1;
         var translationMatrix = createTranslationMatrix(scaleFactor * multiplier, (x + mapDimension + 1) / multiplier, (y - mapDimension - 1) / multiplier);
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
 
@@ -311,7 +311,7 @@ function createPlayerView() {
         var offset = mapDimension;
         var x = (player.x - offset) * 2;
         var y = (offset - player.y) * 2;
-        var translationMatrix = createTranslationMatrix(scaleFactor * 5, (x + mapDimension + 1) / 5, (y - mapDimension - 1) / 5);
+        var translationMatrix = createTranslationMatrix(scaleFactor * viewDimension, (x + mapDimension + 1) / viewDimension, (y - mapDimension - 1) / viewDimension);
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
 
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
@@ -382,12 +382,15 @@ function findPlayer(playerSymbol, turn) {
     return undefined;
 }
 
+var viewDimension;
 function init(image) {
     textureLoaded = true;
     var canvas = document.getElementById("glcanvas");
     gl = null;
     gl = initWebGL(canvas);
     mapDimension = gameRecord["map_width"];
+    viewDimension = gameRecord["view_radius"]  * 2 + 1;
+
 
     if (gl) {
         shaderProgram = initShaders();
