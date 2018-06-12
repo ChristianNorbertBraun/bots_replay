@@ -586,6 +586,7 @@ function onRecordUpload(event) {
 
 function replay() {
     currentTurn = 0;
+    startTurn = 0;
     startOrReturnToReplay();
 }
 
