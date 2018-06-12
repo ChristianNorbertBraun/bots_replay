@@ -432,7 +432,6 @@ function updateControls() {
     if (turn == undefined) {
         replayInProgress = false;
         displayResults();
-        alert("Replay ended, click ok to see results");
         return;
     }
 
