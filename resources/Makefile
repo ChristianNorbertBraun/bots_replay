@@ -12,6 +12,8 @@ createAtlas:
 	convert +append "[y-z].png" 9snake.png tempAtlas9.png && \
 	convert -append temp*.png tempLetterAtlas.png && \
 	convert -append atlas.png tempLetterAtlas.png atlas.png && \
+	convert -append "explosion/e[1-3]Explosion.png" tempExplosionAtlas.png && \
+	convert -append atlas.png tempExplosionAtlas.png atlas.png && \
 	convert atlas.png -background none -gravity north -extent 256x2048 atlas.png && \
 	rm temp*.png
 
@@ -27,5 +29,6 @@ createLetters:
 		convert templates/flatland.png -size 64x64 -gravity Center -pointsize 30 -font Silom -annotate 0 $$letter $$letter.png; \
 	done 
 
+createExplosion:
 
 all: createPlayerSprites createLetters createAtlas

@@ -1,4 +1,5 @@
 "use strict";
+
 var gl;
 var vertexPositionAttribute;
 var textureCoordAttribute;
@@ -69,6 +70,8 @@ var spriteIndices = {
     'z': 97,
     '*': 98
 }
+
+var explosionIndices = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111];
 
 var playerDirectionIndices = {
     'v': 0,
@@ -222,6 +225,34 @@ function createTile(x, y, index) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
+var currentExplosionFrame = 0
+// Just a demo
+function drawExplosion() {
+
+    if (currentExplosionFrame == explosionIndices.length) {
+        currentExplosionFrame = 0;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
+    console.log(explosionIndices[currentExplosionFrame]);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, explosionIndices[currentExplosionFrame] * 32);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    var offset = mapDimension;
+    var x = (2 - offset) * 2;
+    var y = (offset - 2) * 2;
+    var translationMatrix = createTranslationMatrix(scaleFactor, (x + mapDimension + 1), (y - mapDimension - 1));
+    gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+
+    gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    ++currentExplosionFrame;
+}
+
 function drawPlayerMoves() {
 
     for (var i = startTurn; i < currentTurn; ++i) {
@@ -290,7 +321,7 @@ function createPlayerView() {
 
 function draw() {
     var turn = gameRecord.turns[currentTurn];
-   
+
 
     var map = turn.map;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -305,7 +336,7 @@ function draw() {
             var currentSymbol = map.charAt(y * mapDimension + x)
             var spriteIndex = spriteIndices[currentSymbol];
 
-            if (spriteIndex > 7 && spriteIndex  < 69) {
+            if (spriteIndex > 7 && spriteIndex < 69) {
                 var player = findPlayer(currentSymbol, currentTurn);
                 spriteIndex += playerDirectionIndices[player.bearing.charAt(0)];
             }
@@ -321,7 +352,6 @@ function draw() {
     if (selectedPlayerName != undefined) {
         drawPlayerMoves();
     }
-    // requestAnimationFrame(draw);
 }
 
 var scaleFactor;
@@ -507,8 +537,40 @@ function load() {
         showSelectedPlayerViewHistory = event.target.checked;
         updateControls()
     }
+
+    if (masterResults != undefined) {
+        gameRecord = masterResults;
+        gameRecordLoaded();
+    }
 }
+
 window.onload = load;
+
+var fileReader = new FileReader();
+fileReader.onload = function (file) {
+
+    currentTurn = 0;
+    gameRecord = JSON.parse(file.target.result);
+
+    gameRecordLoaded();
+}
+
+function gameRecordLoaded() {
+    // Initiate Table for game
+    var turn = gameRecord.turns[0];
+    var players = turn.players;
+
+    var numberOfRows = playerTable.rows.length;
+    // Start at 1 and keep tableHeader
+    for (var i = 1; i < numberOfRows; ++i) {
+        playerTable.deleteRow(1);
+    }
+
+    for (var i = 0; i < players.length; ++i) {
+        addTableRow(playerTable, players[i])
+    }
+    disableAllRecordButtons(false);
+}
 
 function onRecordUpload(event) {
     // Check for the various File API support.
@@ -519,22 +581,6 @@ function onRecordUpload(event) {
     disableAllRecordButtons(true);
 
     var file = event.srcElement.files[0]
-    var fileReader = new FileReader();
-
-    fileReader.onload = function (file) {
-        disableAllRecordButtons(false);
-
-        currentTurn = 0;
-        gameRecord = JSON.parse(file.target.result);
-
-        // Initiate Table for game
-        var turn = gameRecord.turns[0];
-        var players = turn.players;
-
-        for (var i = 0; i < players.length; ++i) {
-            addTableRow(playerTable, players[i])
-        }
-    }
 
     fileReader.readAsText(file);
 }
