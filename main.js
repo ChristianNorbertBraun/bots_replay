@@ -26,6 +26,47 @@ var spriteIndices = {
 
     'A': 8,
     'B': 12,
+    'C': 16,
+    'D': 20,
+    'E': 24,
+    'F': 28,
+    'G': 32,
+    'H': 36,
+    'I': 40,
+    'J': 44,
+    'K': 48,
+    'L': 52,
+    'M': 56,
+    'N': 60,
+    'O': 64,
+    'P': 68,
+
+    'a': 72,
+    'b': 73,
+    'c': 74,
+    'd': 75,
+    'e': 76,
+    'f': 77,
+    'g': 78,
+    'h': 79,
+    'i': 80,
+    'j': 81,
+    'k': 82,
+    'l': 83,
+    'm': 84,
+    'n': 85,
+    // 'o': 83,
+    'p': 87,
+    'q': 88,
+    'r': 89,
+    's': 90,
+    't': 91,
+    'u': 92,
+    'v': 93,
+    'w': 94,
+    'x': 95,
+    'y': 96,
+    'z': 97
 }
 
 var playerDirectionIndices = {
@@ -50,92 +91,111 @@ var vertices = new Float32Array([
     1.0, -1.0,
 ]);
 
-var textureCoordinates = new Float32Array([
-    // First row sprites
-    0.0, 0.0,
-    0.0, 1 / 4,
-    1 / 4, 0.0,
-    1 / 4, 1 / 4,
+function generateTextureCoordinates(x, y) {
+    var coordinates = [];
+    for (var i = 0; i < y; ++i) {
+        for (var k = 0; k < x; ++k) {
+            coordinates.push(
+                k / x, i / y,
+                k / x, (i + 1) / y,
+                (k + 1) / x, i / y,
+                (k + 1) / x, (i + 1) / y,
+            )
+        }
+    }
 
-    1 / 4, 0.0,
-    1 / 4, 1 / 4,
-    2 / 4, 0.0,
-    2 / 4, 1 / 4,
+    textureCoordinates = new Float32Array(coordinates);
+}
 
-    2 / 4, 0.0,
-    2 / 4, 1 / 4,
-    3 / 4, 0.0,
-    3 / 4, 1 / 4,
+generateTextureCoordinates(4, 32);
 
-    3 / 4, 0.0,
-    3 / 4, 1 / 4,
-    4 / 4, 0.0,
-    4 / 4, 1 / 4,
+var textureCoordinates;
+//  = new Float32Array([
+//     // First row sprites
+//     0.0, 0.0,
+//     0.0, 1 / 4,
+//     1 / 4, 0.0,
+//     1 / 4, 1 / 4,
 
-    // Second row sprites
+//     1 / 4, 0.0,
+//     1 / 4, 1 / 4,
+//     2 / 4, 0.0,
+//     2 / 4, 1 / 4,
 
-    0.0, 1 / 4,
-    0.0, 2 / 4,
-    1 / 4, 1 / 4,
-    1 / 4, 2 / 4,
+//     2 / 4, 0.0,
+//     2 / 4, 1 / 4,
+//     3 / 4, 0.0,
+//     3 / 4, 1 / 4,
 
-    1 / 4, 1 / 4,
-    1 / 4, 2 / 4,
-    2 / 4, 1 / 4,
-    2 / 4, 2 / 4,
+//     3 / 4, 0.0,
+//     3 / 4, 1 / 4,
+//     4 / 4, 0.0,
+//     4 / 4, 1 / 4,
 
-    2 / 4, 1 / 4,
-    2 / 4, 2 / 4,
-    3 / 4, 1 / 4,
-    3 / 4, 2 / 4,
+//     // Second row sprites
 
-    3 / 4, 1 / 4,
-    3 / 4, 2 / 4,
-    4 / 4, 1 / 4,
-    4 / 4, 2 / 4,
+//     0.0, 1 / 4,
+//     0.0, 2 / 4,
+//     1 / 4, 1 / 4,
+//     1 / 4, 2 / 4,
 
-    // Third row sprites
-    0.0, 2 / 4,
-    0.0, 3 / 4,
-    1 / 4, 2 / 4,
-    1 / 4, 3 / 4,
+//     1 / 4, 1 / 4,
+//     1 / 4, 2 / 4,
+//     2 / 4, 1 / 4,
+//     2 / 4, 2 / 4,
 
-    1 / 4, 2 / 4,
-    1 / 4, 3 / 4,
-    2 / 4, 2 / 4,
-    2 / 4, 3 / 4,
+//     2 / 4, 1 / 4,
+//     2 / 4, 2 / 4,
+//     3 / 4, 1 / 4,
+//     3 / 4, 2 / 4,
 
-    2 / 4, 2 / 4,
-    2 / 4, 3 / 4,
-    3 / 4, 2 / 4,
-    3 / 4, 3 / 4,
+//     3 / 4, 1 / 4,
+//     3 / 4, 2 / 4,
+//     4 / 4, 1 / 4,
+//     4 / 4, 2 / 4,
 
-    3 / 4, 2 / 4,
-    3 / 4, 3 / 4,
-    4 / 4, 2 / 4,
-    4 / 4, 3 / 4,
+//     // Third row sprites
+//     0.0, 2 / 4,
+//     0.0, 3 / 4,
+//     1 / 4, 2 / 4,
+//     1 / 4, 3 / 4,
 
-    // Fourth row sprites
-    0.0, 3 / 4,
-    0.0, 4 / 4,
-    1 / 4, 3 / 4,
-    1 / 4, 4 / 4,
+//     1 / 4, 2 / 4,
+//     1 / 4, 3 / 4,
+//     2 / 4, 2 / 4,
+//     2 / 4, 3 / 4,
 
-    1 / 4, 3 / 4,
-    1 / 4, 4 / 4,
-    2 / 4, 3 / 4,
-    2 / 4, 4 / 4,
+//     2 / 4, 2 / 4,
+//     2 / 4, 3 / 4,
+//     3 / 4, 2 / 4,
+//     3 / 4, 3 / 4,
 
-    2 / 4, 3 / 4,
-    2 / 4, 4 / 4,
-    3 / 4, 3 / 4,
-    3 / 4, 4 / 4,
+//     3 / 4, 2 / 4,
+//     3 / 4, 3 / 4,
+//     4 / 4, 2 / 4,
+//     4 / 4, 3 / 4,
 
-    3 / 4, 3 / 4,
-    3 / 4, 4 / 4,
-    4 / 4, 3 / 4,
-    4 / 4, 4 / 4,
-]);
+//     // Fourth row sprites
+//     0.0, 3 / 4,
+//     0.0, 4 / 4,
+//     1 / 4, 3 / 4,
+//     1 / 4, 4 / 4,
+
+//     1 / 4, 3 / 4,
+//     1 / 4, 4 / 4,
+//     2 / 4, 3 / 4,
+//     2 / 4, 4 / 4,
+
+//     2 / 4, 3 / 4,
+//     2 / 4, 4 / 4,
+//     3 / 4, 3 / 4,
+//     3 / 4, 4 / 4,
+
+//     3 / 4, 3 / 4,
+//     3 / 4, 4 / 4,
+//     4 / 4, 3 / 4,
+//     4 / 4, 4 / 4,
+// ]);
 
 var glBuffer;
 var glTextureBuffer;
@@ -233,12 +293,7 @@ function createPlayerView() {
 
 function draw() {
     var turn = gameRecord.turns[currentTurn];
-    if (turn == undefined) {
-        replayInProgress = false;
-        displayResults();
-        alert("Replay ended, click ok to see results");
-        return;
-    }
+   
 
     var map = turn.map;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -253,7 +308,7 @@ function draw() {
             var currentSymbol = map.charAt(y * mapDimension + x)
             var spriteIndex = spriteIndices[currentSymbol];
 
-            if (spriteIndex > 7) {
+            if (spriteIndex > 7 && spriteIndex  < 69) {
                 var player = findPlayer(currentSymbol, currentTurn);
                 spriteIndex += playerDirectionIndices[player.bearing.charAt(0)];
             }
@@ -346,6 +401,14 @@ function updateControls() {
     currentTurnInput.value = currentTurn;
 
     var turn = gameRecord.turns[currentTurn];
+
+    if (turn == undefined) {
+        replayInProgress = false;
+        displayResults();
+        alert("Replay ended, click ok to see results");
+        return;
+    }
+
     var players = turn.players;
 
     var numberOfRows = playerTable.rows.length;
