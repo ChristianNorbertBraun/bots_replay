@@ -538,8 +538,8 @@ function load() {
         updateControls()
     }
 
-    if (masterResults != undefined) {
-        gameRecord = masterResults;
+    if (lastGame != undefined) {
+        gameRecord = lastGame;
         gameRecordLoaded();
     }
 }
