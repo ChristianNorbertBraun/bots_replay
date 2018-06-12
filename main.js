@@ -11,7 +11,7 @@ var textureLoaded = false;
 var width;
 var height;
 
-var currentTurn = 1;
+var currentTurn = 0;
 var gameRecord;
 
 var playerMoves = [];
@@ -154,8 +154,7 @@ function createTile(x, y, index) {
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
-    var perspectiveMatrix = createPerspectiveMatrix(width, height);
-    var translationMatrix = createTranslationMatrix(scaleFactor, scaleFactor, x, y);
+    setTranslation(scaleFactor, x, y)
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
 
     gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
@@ -191,7 +190,7 @@ function drawPlayerMoves() {
         var x = (player.x - offset) * 2;
         var y = (offset - player.y) * 2;
         var multiplier = showSelectedPlayerViewHistory ? 5 : 1;
-        var translationMatrix = createTranslationMatrix(scaleFactor * multiplier, scaleFactor * multiplier, (x + mapDimension + 1) / multiplier, (y - mapDimension - 1) / multiplier);
+        var translationMatrix = createTranslationMatrix(scaleFactor * multiplier, (x + mapDimension + 1) / multiplier, (y - mapDimension - 1) / multiplier);
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
 
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
@@ -224,23 +223,12 @@ function createPlayerView() {
         var offset = mapDimension;
         var x = (player.x - offset) * 2;
         var y = (offset - player.y) * 2;
-        var translationMatrix = createTranslationMatrix(scaleFactor * 5, scaleFactor * 5, (x + mapDimension + 1) / 5, (y - mapDimension - 1) / 5);
+        var translationMatrix = createTranslationMatrix(scaleFactor * 5, (x + mapDimension + 1) / 5, (y - mapDimension - 1) / 5);
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
 
         gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-}
-
-var scaleFactor;
-var mapDimension;
-
-function resize() {
-    width = gl.canvas.clientWidth;
-    height = gl.canvas.clientHeight;
-    gl.canvas.width = width;
-    gl.canvas.height = height;
-    gl.viewport(0, 0, width, height);
 }
 
 function draw() {
@@ -281,7 +269,23 @@ function draw() {
     if (selectedPlayerName != undefined) {
         drawPlayerMoves();
     }
-    requestAnimationFrame(draw);
+    // requestAnimationFrame(draw);
+}
+
+var scaleFactor;
+var mapDimension;
+
+function resize() {
+    width = gl.canvas.clientWidth;
+    height = gl.canvas.clientHeight;
+    gl.canvas.width = width;
+    gl.canvas.height = height;
+    gl.viewport(0, 0, width, height);
+
+    var aspect = height / width;
+    scaleFactor = Math.min(1, aspect) / mapDimension;
+    initPerspectiveMatrix(width, height);
+    initTranslationMatrix(scaleFactor);
 }
 
 function findPlayer(playerSymbol, turn) {
@@ -302,7 +306,6 @@ function init(image) {
     gl = null;
     gl = initWebGL(canvas);
     mapDimension = gameRecord["map_width"];
-    scaleFactor = 1 / mapDimension;
 
     if (gl) {
         shaderProgram = initShaders();
@@ -318,8 +321,6 @@ function init(image) {
         resize();
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        // gl.disable(gl.DEPTH_TEST);
-        // gl.depthFunc(gl.LEQUAL);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
@@ -336,9 +337,9 @@ function input() {
     if (gameRecord.turns[currentTurn] == undefined) {
         return;
     }
+    ++currentTurn;
     updateControls();
     setTimeout(input, replaySpeedInMs);
-    ++currentTurn;
 }
 
 function updateControls() {
@@ -354,6 +355,7 @@ function updateControls() {
         updateTableRow(players[i])
     }
 
+    draw();
 }
 
 function startRecord() {
@@ -363,7 +365,10 @@ function startRecord() {
 }
 
 function returnToRecord() {
-    input()
+    if (gamePaused) {
+        gamePaused = false;
+        input()
+    }
 }
 
 var recordUpload;
@@ -419,6 +424,7 @@ function load() {
         if (value > 0) {
             replaySpeedInMs = value;
         }
+        updateControls()
     }
 
     currentTurnInput.onchange = function (event) {
@@ -434,10 +440,12 @@ function load() {
 
     showPlayerViewInput.onchange = function (event) {
         showPlayerView = event.target.checked;
+        updateControls()
     }
 
     showPlayerViewHistoryInput.onchange = function (event) {
         showSelectedPlayerViewHistory = event.target.checked;
+        updateControls()
     }
 }
 window.onload = load;
@@ -460,7 +468,7 @@ function onRecordUpload(event) {
         gameRecord = JSON.parse(file.target.result);
 
         // Initiate Table for game
-        var turn = gameRecord.turns[currentTurn];
+        var turn = gameRecord.turns[0];
         var players = turn.players;
 
         for (var i = 0; i < players.length; ++i) {
@@ -473,21 +481,21 @@ function onRecordUpload(event) {
 
 function replay() {
     currentTurn = 0;
-    gamePaused = false
     startOrReturnToReplay();
 }
 
 function play() {
-    gamePaused = false
     startOrReturnToReplay();
 }
 
 function startOrReturnToReplay() {
     if (replayInProgress) {
         returnToRecord();
+        gamePaused = false
     } else {
         replayInProgress = true;
         startRecord();
+        gamePaused = false
     }
 }
 
@@ -565,6 +573,7 @@ function addTableRow(table, player) {
             tr.classList.add("selected");
             singlePlayerControlsDiv.classList.remove("hidden");
         }
+        updateControls();
     };
 
     table.appendChild(tr);

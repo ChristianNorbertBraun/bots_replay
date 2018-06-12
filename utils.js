@@ -91,20 +91,42 @@ function activateTexture0(gl, texture) {
     gl.bindTexture(gl.TEXTURE_2D, texture);
 }
 
-function createTranslationMatrix(scaleFactorX, scaleFactorY, translationX, translationY) {
+var perspectiveMatrix;
+var translationMatrix;
+
+function initTranslationMatrix(scaleFactor) {
+    translationMatrix = new Float32Array([
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    ]);
+    translationMatrix[0] = scaleFactor;
+    translationMatrix[4] = scaleFactor;
+}
+
+function createTranslationMatrix(scaleFactor, translationX, translationY) {
     var transMat = new Float32Array([
         1, 0, 0,
         0, 1, 0,
         0, 0, 1
     ]);
 
-    transMat[0] = scaleFactorX;
-    transMat[4] = scaleFactorY;
+    transMat[0] = scaleFactor;
+    transMat[4] = scaleFactor;
 
-    transMat[6] = translationX * scaleFactorX;
-    transMat[7] = translationY * scaleFactorY;
+    transMat[6] = translationX * scaleFactor;
+    transMat[7] = translationY * scaleFactor;
 
     return transMat;
+}
+
+function setTranslation(scaleFactor, translationX, translationY) {
+    translationMatrix[6] = translationX * scaleFactor;
+    translationMatrix[7] = translationY * scaleFactor;
+}
+
+function initPerspectiveMatrix(width, height) {
+    perspectiveMatrix = createPerspectiveMatrix(width, height);
 }
 
 function createPerspectiveMatrix(width, height) {
