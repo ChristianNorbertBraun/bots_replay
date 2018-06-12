@@ -225,32 +225,36 @@ function createTile(x, y, index) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 }
 
-var currentExplosionFrame = 0
+var currentExplosions = [];
 // Just a demo
-function drawExplosion() {
+function drawExplosions() {
+    for (var i = 0; i < currentExplosions.length; ++i) {
+        var explosion = currentExplosions[i];
+        var explosionIndex = currentTurn - explosion.startTurn
 
-    if (currentExplosionFrame == explosionIndices.length) {
-        currentExplosionFrame = 0;
+        if (explosionIndex < 0 || explosionIndex > explosionIndices.length) {
+            currentExplosions.splice(i, 1);
+            --i;
+            continue
+        }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, explosionIndices[explosionIndex] * 32);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+
+        var offset = mapDimension;
+        var x = (explosion.x - offset) * 2;
+        var y = (offset - explosion.y) * 2;
+        var translationMatrix = createTranslationMatrix(scaleFactor, (x + mapDimension + 1), (y - mapDimension - 1));
+        gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
+
+        gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
-    gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
-    console.log(explosionIndices[currentExplosionFrame]);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, explosionIndices[currentExplosionFrame] * 32);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-
-    var offset = mapDimension;
-    var x = (2 - offset) * 2;
-    var y = (offset - 2) * 2;
-    var translationMatrix = createTranslationMatrix(scaleFactor, (x + mapDimension + 1), (y - mapDimension - 1));
-    gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "transformation"), false, translationMatrix);
-
-    gl.uniformMatrix3fv(gl.getUniformLocation(shaderProgram, "perspective"), false, perspectiveMatrix);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    ++currentExplosionFrame;
 }
 
 function drawPlayerMoves() {
@@ -322,6 +326,9 @@ function createPlayerView() {
 function draw() {
     var turn = gameRecord.turns[currentTurn];
 
+    if (turn == undefined) {
+        return;
+    }
 
     var map = turn.map;
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -352,6 +359,30 @@ function draw() {
     if (selectedPlayerName != undefined) {
         drawPlayerMoves();
     }
+
+    getNewExplosionsForCurrentTurn(currentTurn);
+    drawExplosions();
+}
+
+function getNewExplosionsForCurrentTurn(currenTurn) {
+    var turn = gameRecord.turns[currentTurn];
+    var players = turn.players;
+
+    for (var i = 0; i < players.length; ++i) {
+        var player = players[i];
+        if (player.killed_by != undefined) {
+            var previousTurn = gameRecord.turns[currentTurn - 1];
+            if (previousTurn.players[i].killed_by == undefined) {
+                console.log("Added explosion")
+                currentExplosions.push({
+                    x: player.x,
+                    y: player.y,
+                    startTurn: currentTurn
+                })
+            }
+        }
+    }
+
 }
 
 var scaleFactor;
@@ -389,7 +420,7 @@ function init(image) {
     gl = null;
     gl = initWebGL(canvas);
     mapDimension = gameRecord["map_width"];
-    viewDimension = gameRecord["view_radius"]  * 2 + 1;
+    viewDimension = gameRecord["view_radius"] * 2 + 1;
 
 
     if (gl) {
