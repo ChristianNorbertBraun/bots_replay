@@ -502,6 +502,8 @@ var playButton;
 var backwardButton;
 var forwardButton;
 
+var rawButton;
+
 var playerTable;
 var resultsTable;
 
@@ -540,6 +542,7 @@ function load() {
     showPlayerViewHistoryInput = document.getElementById("continous-player-view-input");
     singlePlayerControlsDiv = document.getElementById("single-player-controls");
     resultsDiv = document.getElementById("results");
+    rawButton = document.getElementById("raw-button");
 
     disableAllRecordButtons(true);
     replaySpeedInput.onchange = function (event) {
@@ -628,6 +631,38 @@ function play() {
     startOrReturnToReplay();
 }
 
+function getRawData() {
+    if (gameRecord == undefined) {
+        return;
+    }
+    var turn = gameRecord.turns[currentTurn];
+    var map = turn.map;
+    var mapWithNewLines = "";
+    var mapDimension = gameRecord["map_width"];
+
+    for (var i = 0; i < mapDimension; ++i) {
+        mapWithNewLines += map.slice(i * mapDimension, (i + 1) * mapDimension);
+        mapWithNewLines += "<br>";
+    }
+    var commandString = "-c customMap -A ";
+    for (var i = 0; i < turn.players.length; ++i) {
+        if (i != 0) {
+            commandString +=";"
+        }
+        commandString += turn.players[i].x + "," + turn.players[i].y + "," +turn.players[i].bearing;
+    }
+
+    var myWindow = window.open();
+    myWindow.document.write(
+        "<html>" +
+        "<head>" + 
+        "<style>body {font-family: Courier New} </style>" +
+        "</head>" + 
+        "<body>" + commandString + "<br><br>" + mapWithNewLines + "</body>" +
+        "</html>"
+        );
+}
+
 function startOrReturnToReplay() {
     if (replayInProgress) {
         returnToRecord();
@@ -659,6 +694,7 @@ function disableAllRecordButtons(disable) {
     playButton.disabled = disable;
     backwardButton.disabled = disable;
     forwardButton.disabled = disable;
+    rawButton.disabled = disable;
 }
 
 function displayResults() {
