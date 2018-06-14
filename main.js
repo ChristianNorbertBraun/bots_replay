@@ -647,7 +647,7 @@ function getRawData() {
     var commandString = "-c customMap -A ";
     for (var i = 0; i < turn.players.length; ++i) {
         if (i != 0) {
-            commandString +=";"
+            commandString +=":"
         }
         commandString += turn.players[i].x + "," + turn.players[i].y + "," +turn.players[i].bearing;
     }
