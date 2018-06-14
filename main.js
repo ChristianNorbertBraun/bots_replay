@@ -268,7 +268,7 @@ function drawPlayerMoves() {
         var turn = gameRecord.turns[i];
 
         if (turn == undefined) {
-            continue;
+            return;
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
@@ -304,7 +304,7 @@ function createPlayerView() {
     for (var i = 0; i < players.length; ++i) {
         var player = players[i];
         if (player.life == 0) {
-            return
+            continue;
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
