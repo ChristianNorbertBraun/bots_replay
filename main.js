@@ -303,6 +303,9 @@ function createPlayerView() {
 
     for (var i = 0; i < players.length; ++i) {
         var player = players[i];
+        if (player.life == 0) {
+            return
+        }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, textureCoordinates, gl.STATIC_DRAW);
@@ -644,13 +647,14 @@ function getRawData() {
         mapWithNewLines += map.slice(i * mapDimension, (i + 1) * mapDimension);
         mapWithNewLines += "<br>";
     }
-    var commandString = "-c customMap -A ";
+    var commandString = "-c customMap -A \"";
     for (var i = 0; i < turn.players.length; ++i) {
         if (i != 0) {
             commandString +=":"
         }
         commandString += turn.players[i].x + "," + turn.players[i].y + "," +turn.players[i].bearing;
     }
+    commandString += "\""
 
     var myWindow = window.open();
     myWindow.document.write(
