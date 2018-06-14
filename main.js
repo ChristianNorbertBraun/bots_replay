@@ -268,7 +268,7 @@ function drawPlayerMoves() {
         var turn = gameRecord.turns[i];
 
         if (turn == undefined) {
-            return;
+            continue;
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, glTextureBuffer);
