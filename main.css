@@ -19,6 +19,7 @@ canvas {
     height: 100%;
     float: right;
     background: black;
+    position: relative;
 }
 
 .hidden {
@@ -57,5 +58,11 @@ table td
 :disabled {
     color: gray;
     border-color: gray;
+}
+
+#raw-button {
+    position: absolute;
+    right: 0;
+    bottom: 0;
 }
 
