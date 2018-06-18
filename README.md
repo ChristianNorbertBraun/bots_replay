@@ -41,4 +41,4 @@ echo "var lastGame= (./bots escape -G1 -F json)" > ../botsReplay/results.js
 
 This will create a results.js file within the directory of the visualization which can be loaded when the site is refreshed. 
 
-If it appears that the visualization is always loading a old gameplay please check if your cache is disabled or if the json is invalid.
+If it appears that the visualization is always loading an old gameplay please check if your cache is disabled or if the json is invalid.
