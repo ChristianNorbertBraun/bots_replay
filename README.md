@@ -25,7 +25,7 @@ There are two different ways to load a replay of a bots game with this visualiza
 
 First you have to start the bots server:
 ```
-./bots escape -G1 -F json >> results.json 
+./bots escape -G1 -F json > results.json 
 ```
 If the game is done you can upload the results.json to the visualization using the upload button on the webpage.
 
