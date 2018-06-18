@@ -1,5 +1,5 @@
 createAtlas:
-	convert +append "[1-4]*.png" tempAtlas1.png && \
+	convert +append "[1-4][a-z]*.png" tempAtlas1.png && \
 	convert +append "[5-8]*.png" tempAtlas2.png && \
 	convert -append temp*.png atlas.png && \
 	rm temp*.png && \
@@ -9,7 +9,7 @@ createAtlas:
 	convert +append "[m-p].png" tempAtlas6.png && \
 	convert +append "[q-t].png" tempAtlas7.png && \
 	convert +append "[u-x].png" tempAtlas8.png && \
-	convert +append "[y-z].png" 9snake.png tempAtlas9.png && \
+	convert +append "[y-z].png" 9snake.png 10point.png tempAtlas9.png && \
 	convert -append temp*.png tempLetterAtlas.png && \
 	convert -append atlas.png tempLetterAtlas.png atlas.png && \
 	convert -append "explosion/e[1-3]Explosion.png" tempExplosionAtlas.png && \

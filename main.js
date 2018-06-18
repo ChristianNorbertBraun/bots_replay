@@ -227,6 +227,11 @@ function createTile(x, y, index) {
 
 var currentExplosions = [];
 // Just a demo
+
+function drawDot(x, y) {
+    createTile(x, y, 99);
+}
+
 function drawExplosions() {
     for (var i = 0; i < currentExplosions.length; ++i) {
         var explosion = currentExplosions[i];
@@ -351,6 +356,9 @@ function draw() {
                 spriteIndex += playerDirectionIndices[player.bearing.charAt(0)];
             }
             createTile(startX, startY, spriteIndex);
+            if (showDots) {
+                drawDot(startX, startY)
+            }
             startX += 2;
         }
         startY -= 2
@@ -515,11 +523,13 @@ var replaySpeedInput;
 
 var showPlayerViewInput;
 var showPlayerViewHistoryInput;
+var showDotsInput;
 
 var gamePaused = false;
 var replaySpeedInMs = 200;
 var replayInProgress = false;
 var showPlayerView = false;
+var showDots = false
 
 var startTurn = 0;
 var selectedPlayerName;
@@ -546,6 +556,7 @@ function load() {
     singlePlayerControlsDiv = document.getElementById("single-player-controls");
     resultsDiv = document.getElementById("results");
     rawButton = document.getElementById("raw-button");
+    showDotsInput = document.getElementById("dot-view-input");
 
     disableAllRecordButtons(true);
     replaySpeedInput.onchange = function (event) {
@@ -574,6 +585,11 @@ function load() {
 
     showPlayerViewHistoryInput.onchange = function (event) {
         showSelectedPlayerViewHistory = event.target.checked;
+        updateControls()
+    }
+
+    showDotsInput.onchange = function (event) {
+        showDots = event.target.checked
         updateControls()
     }
 
@@ -650,21 +666,21 @@ function getRawData() {
     var commandString = "-c customMap -A \"";
     for (var i = 0; i < turn.players.length; ++i) {
         if (i != 0) {
-            commandString +=":"
+            commandString += ":"
         }
-        commandString += turn.players[i].x + "," + turn.players[i].y + "," +turn.players[i].bearing;
+        commandString += turn.players[i].x + "," + turn.players[i].y + "," + turn.players[i].bearing;
     }
     commandString += "\""
 
     var myWindow = window.open();
     myWindow.document.write(
         "<html>" +
-        "<head>" + 
+        "<head>" +
         "<style>body {font-family: Courier New} </style>" +
-        "</head>" + 
+        "</head>" +
         "<body>" + commandString + "<br><br>" + mapWithNewLines + "</body>" +
         "</html>"
-        );
+    );
 }
 
 function startOrReturnToReplay() {
